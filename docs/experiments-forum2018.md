@@ -12,7 +12,11 @@ The SIGIR Forum article references commit [`2c8cd7a`](https://github.com/castori
 The SIGIR 2019 paper contains experiments performed post upgrade.
 
 The Anserini upgrade to Lucene 8.0 at commit [`75e36f9`](https://github.com/castorini/anserini/commit/75e36f97f7037d1ceb20fa9c91582eac5e974131) (6/12/2019) broke the regression tests, which was later fixed at commit [`64bae9c`](https://github.com/castorini/anserini/commit/64bae9c8b87ad56bc8cf6ea0c5405eb2a82b3682) (7/3/2019).
-This commit represents the latest state of the code and the results that can be currently reproduced.
+
+In September 2023, regression results were updated at commit [`6e148c6`](https://github.com/castorini/anserini/commit/6e148c6d22f78cb05ab0284d70701008b719ebc9) (2023/09/16).
+This commit patched effectiveness differences arising from two main sources: (1) the upgrade to Lucene 9 at [`2725655`](https://github.com/castorini/anserini/commit/27256551e958f39495b04e89ef55de9d27f33414) (2022/08/02) and (2) a `fastutil` upgrade/bug fix at [#1975](https://github.com/castorini/anserini/pull/1975) that affected relevance feedback results. 
+To our knowledge, this commit represents the latest state of the code where the effectiveness encoded in our scripts can be successfully reproduced.
+
 See summary in "History" section below.
 
 ## Expected Results
@@ -24,17 +28,19 @@ Retrieval models are tuned with respect to following fold definitions:
 
 Here are expected results for various retrieval models:
 
-AP                 | Paper 1 | Paper 2 |
-:------------------|---------|---------|
-BM25 (default)     |  0.2531 |  0.2531 |
-BM25 (tuned)       |  0.2539 |  0.2531 |
-QL (default)       |  0.2467 |  0.2467 |
-QL (tuned)         |  0.2520 |  0.2499 |
-BM25+RM3 (default) |  0.2903 |  0.2903 |
-BM25+RM3 (tuned)   |  0.3043 |  0.3021 |
-BM25+Ax (default)  |  0.2896 |  0.2896 |
-BM25+Ax (tuned)    |  0.2940 |  0.2950 |
+| AP                 | Paper 1 | Paper 2 |
+|:-------------------|---------|---------|
+| BM25 (default)     | 0.2531  | 0.2531  |
+| BM25 (tuned)       | 0.2539  | 0.2531  |
+| QL (default)       | 0.2467  | 0.2467  |
+| QL (tuned)         | 0.2520  | 0.2499  |
+| BM25+RM3 (default) | 0.2903  | 0.2903  |
+| BM25+RM3 (tuned)   | 0.3043  | 0.3021  |
+| BM25+Ax (default)  | 0.2896  | 0.2896  |
+| BM25+Ax (tuned)    | 0.2940  | 0.2950  |
 
+(Clarification, 2023/09): Note that these effectiveness figures are from our papers, which may not be what the code currently produces.
+See notes about differences in regression results above.
 
 ## Parameter Tuning
 
@@ -90,10 +96,10 @@ The following script will reconstruct the tuned runs for BM25+RM3:
 
 ```
 python src/main/python/fine_tuning/reconstruct_robus04_tuned_run.py \
- --index lucene-index.robust04.pos+docvectors+rawdocs \
- --folds src/main/resources/fine_tuning/robust04-paper1-folds.json \
- --params src/main/resources/fine_tuning/params/params.map.robust04-paper1-folds.bm25+rm3.json \
- --output run.robust04.bm25+rm3.paper1.txt
+  --index indexes/lucene-index.disk45 \
+  --folds src/main/resources/fine_tuning/robust04-paper1-folds.json \
+  --params src/main/resources/fine_tuning/params/params.map.robust04-paper1-folds.bm25+rm3.json \
+  --output run.robust04.bm25+rm3.paper1.txt
 ```
 
 Change `paper1` to `paper2` to reconstruct using the folds in paper 2.
@@ -103,11 +109,14 @@ To reconstruct runs from other retrieval models, use the parameter definitions i
 Note that applying `trec_eval` to these reconstructed runs might yield AP that is a tiny bit different from the values reported above (difference of 0.0001 at the most).
 This difference arises from rounding when averaging across the folds.
 
+(Clarification, 2023/09): Note that the commands above reconstruct runs based on the tuned parameters from our papers.
+The effectiveness results may differ from those reported in our papers due to the regression differences described above.
 
 ## History
 
 The following documents commits that have altered effectiveness figures:
 
++ commit [`6e148c6`](https://github.com/castorini/anserini/commit/6e148c6d22f78cb05ab0284d70701008b719ebc9) (2023/09/16) - Regression experiments updated.
 + commit [`64bae9c`](https://github.com/castorini/anserini/commit/64bae9c8b87ad56bc8cf6ea0c5405eb2a82b3682) (7/3/2019) - Regression experiments here fixed.
 + commit [`75e36f9`](https://github.com/castorini/anserini/commit/75e36f97f7037d1ceb20fa9c91582eac5e974131) (6/12/2019) - Upgrade to Lucene 8.0 breaks regression experiments here.
 + commit [`407f308`](https://github.com/castorini/Anserini/commit/407f308cc543286e39701caf0acd1afab39dde2c) (1/2/2019) - Added results for axiomatic semantic term matching.
